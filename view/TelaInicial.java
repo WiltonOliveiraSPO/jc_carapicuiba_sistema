@@ -25,24 +25,44 @@ public class TelaInicial extends JFrame {
 
     // ================= IMAGEM CENTRAL =================
     private void adicionarImagemCentral() {
-        ImageIcon icon = new ImageIcon("C:\\jc_carapicuiba\\icons\\izunome_img.jpg");
-        JLabel lblImagem = new JLabel(icon);
-        lblImagem.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JPanel painelImagem = new JPanel(new BorderLayout());
-        painelImagem.setBackground(fundo);
-        painelImagem.add(lblImagem, BorderLayout.CENTER);
+        ImageIcon iconOriginal =
+                new ImageIcon("C:\\jc_carapicuiba\\icons\\izunome_img.jpg");
 
-        add(painelImagem, BorderLayout.CENTER);
+        Image imagemRedimensionada = iconOriginal.getImage()
+                .getScaledInstance(450, 260, Image.SCALE_SMOOTH);
+
+        JLabel lblImagem = new JLabel(new ImageIcon(imagemRedimensionada));
+        lblImagem.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel painelCentral = new JPanel();
+        painelCentral.setBackground(fundo);
+        painelCentral.setLayout(new BoxLayout(painelCentral, BoxLayout.Y_AXIS));
+
+        // Espaço superior (empurra tudo para cima)
+        painelCentral.add(Box.createVerticalStrut(40));
+
+        painelCentral.add(lblImagem);
+
+        // Espaço inferior controlado
+        painelCentral.add(Box.createVerticalStrut(20));
+
+        add(painelCentral, BorderLayout.CENTER);
     }
 
     // ================= BOTÕES =================
     private void adicionarBotoesInferiores() {
 
-        JPanel painel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        painel.setBackground(fundo);
+        // Painel principal do rodapé
+        JPanel painelRodape = new JPanel();
+        painelRodape.setBackground(fundo);
+        painelRodape.setLayout(new BorderLayout());
 
-        // 🔹 Mapa para manter ordem e facilitar manutenção
+        // Painel dos botões (2 linhas x 5 colunas)
+        JPanel painelBotoes = new JPanel(new GridLayout(2, 5, 20, 20));
+        painelBotoes.setBackground(fundo);
+        painelBotoes.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+
         Map<String, Runnable> botoes = new LinkedHashMap<>();
 
         // ===== CADASTROS =====
@@ -52,30 +72,23 @@ public class TelaInicial extends JFrame {
         botoes.put("Cadastro de Primeira Vez", FrmPrimeiraVez::new);
         botoes.put("Gratidão Diária", FrmGratidao::new);
 
-        // ===== PESQUISAS (futuras telas) =====
-        botoes.put("Pesquisa de Dedicação", () ->
-                JOptionPane.showMessageDialog(this, "Tela em desenvolvimento"));
+        // ===== PESQUISAS =====
+        botoes.put("Pesquisa de Dedicação", FrmPesquisaDedicacao::new);
+        botoes.put("Pesquisa de Pedidos Diários", FrmPesquisaPedidosDiarios::new);
+        botoes.put("Pesquisa de Membros",FrmPesquisaMembro::new);
+        botoes.put("Pesquisa de Primeira Vez",FrmPesquisaPrimeiraVez::new);
+        botoes.put("Pesquisa de Gratidão",
+                () -> JOptionPane.showMessageDialog(this, "Tela em desenvolvimento"));
 
-        botoes.put("Pesquisa de Frequência", () ->
-                JOptionPane.showMessageDialog(this, "Tela em desenvolvimento"));
-
-        botoes.put("Pesquisa de Membros", () ->
-                JOptionPane.showMessageDialog(this, "Tela em desenvolvimento"));
-
-        botoes.put("Pesquisa de Primeira Vez", () ->
-                JOptionPane.showMessageDialog(this, "Tela em desenvolvimento"));
-
-        botoes.put("Pesquisa de Gratidão", () ->
-                JOptionPane.showMessageDialog(this, "Tela em desenvolvimento"));
-
-        // ===== CRIAÇÃO AUTOMÁTICA =====
         botoes.forEach((texto, acao) -> {
             JButton botao = criarBotao(texto);
             botao.addActionListener(e -> acao.run());
-            painel.add(botao);
+            painelBotoes.add(botao);
         });
 
-        add(painel, BorderLayout.SOUTH);
+        painelRodape.add(painelBotoes, BorderLayout.CENTER);
+
+        add(painelRodape, BorderLayout.SOUTH);
     }
 
     // ================= BOTÃO PADRÃO =================

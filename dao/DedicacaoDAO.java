@@ -1,6 +1,13 @@
 package dao;
 
 import model.Dedicacao;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,6 +17,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DedicacaoDAO {
+	
+	private Connection con;
+
+    // ================= CONSTRUTOR =================
+    public DedicacaoDAO() {
+        try {
+            con = DBConnection.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao conectar no banco", e);
+        }
+    }
 
     // CREATE (INSERT)
     public void inserir(Dedicacao d) {
@@ -130,4 +148,40 @@ public class DedicacaoDAO {
             e.printStackTrace();
         }
     }
+    
+    public List<Dedicacao> pesquisarPorPeriodo(Date ini, Date fim) {
+
+        List<Dedicacao> lista = new ArrayList<>();
+
+        String sql = """
+            SELECT dt_dedicacao, qtde_membros, qtde_frequentadores, qtde_primvez
+            FROM dedicacao
+            WHERE dt_dedicacao BETWEEN ? AND ?
+            ORDER BY dt_dedicacao
+        """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement pst = con.prepareStatement(sql)) {
+
+            pst.setDate(1, ini);
+            pst.setDate(2, fim);
+
+            ResultSet rs = pst.executeQuery();
+
+            while (rs.next()) {
+                Dedicacao d = new Dedicacao();
+                d.setDtDedicacao(rs.getDate("dt_dedicacao").toLocalDate());
+                d.setQtdeMembros(rs.getInt("qtde_membros"));
+                d.setQtdeFrequentadores(rs.getInt("qtde_frequentadores"));
+                d.setQtdePrimVez(rs.getInt("qtde_primvez"));
+                lista.add(d);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+
 }

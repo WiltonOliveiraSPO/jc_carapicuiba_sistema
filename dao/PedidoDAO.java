@@ -92,4 +92,45 @@ public class PedidoDAO {
         }
         return lista;
     }
+    
+    public List<Pedido> pesquisarPorPeriodo(Date dataIni, Date dataFim) {
+
+        List<Pedido> lista = new ArrayList<>();
+
+        String sql = """
+            SELECT *
+            FROM pedidos
+            WHERE dt_pedidos BETWEEN ? AND ?
+            ORDER BY dt_pedidos
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setDate(1, dataIni);
+            ps.setDate(2, dataFim);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                Pedido p = new Pedido();
+
+                p.setCodPedidos(rs.getInt("cod_pedidos"));
+                p.setDtPedidos(rs.getDate("dt_pedidos").toLocalDate());
+                p.setQtdeAgradecimento(rs.getInt("qtde_agradecimento"));
+                p.setQtdeGraca(rs.getInt("qtde_graca"));
+                p.setQtdeElevacao(rs.getInt("qtde_elevacao"));
+                p.setQtdeAnivFalec(rs.getInt("qtde_anivfalec"));
+
+                lista.add(p);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+
 }

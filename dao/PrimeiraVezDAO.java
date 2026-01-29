@@ -103,4 +103,89 @@ public class PrimeiraVezDAO {
         }
         return lista;
     }
+    
+    public List<PrimeiraVez> pesquisarPorNome(String nome) {
+
+        List<PrimeiraVez> lista = new ArrayList<>();
+
+        String sql = """
+            SELECT * FROM primvez
+            WHERE nome LIKE ?
+            ORDER BY data_primvez DESC
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, "%" + nome + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                PrimeiraVez p = new PrimeiraVez();
+                p.setCodPrimVez(rs.getInt("cod_primvez"));
+                p.setNome(rs.getString("nome"));
+                p.setCodMembro(rs.getInt("cod_membro"));
+                p.setEndereco(rs.getString("endereco"));
+                p.setTelefone(rs.getString("telefone"));
+                p.setEmail(rs.getString("email"));
+
+                Timestamp ts = rs.getTimestamp("data_primvez");
+                if (ts != null)
+                    p.setDataPrimVez(ts.toLocalDateTime());
+
+                lista.add(p);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+
+    public List<Object[]> pesquisarComMembro(String nome) {
+
+        List<Object[]> lista = new ArrayList<>();
+
+        String sql = """
+            SELECT p.cod_primvez,
+                   p.nome,
+                   p.endereco,
+                   p.telefone,
+                   p.email,
+                   p.data_primvez,
+                   m.nome AS nome_membro
+            FROM primvez p
+            JOIN membro m ON p.cod_membro = m.cod_membro
+            WHERE p.nome LIKE ?
+            ORDER BY p.data_primvez DESC
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, "%" + nome + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                lista.add(new Object[]{
+                        rs.getInt("cod_primvez"),
+                        rs.getString("nome"),
+                        rs.getString("endereco"),
+                        rs.getString("telefone"),
+                        rs.getString("email"),
+                        rs.getTimestamp("data_primvez").toLocalDateTime(),
+                        rs.getString("nome_membro")
+                });
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+
 }

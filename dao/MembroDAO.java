@@ -104,4 +104,46 @@ public class MembroDAO {
         }
         return lista;
     }
+    
+    public List<Membro> pesquisarPorNome(String nome) {
+
+        List<Membro> lista = new ArrayList<>();
+
+        String sql = """
+            SELECT * FROM membro
+            WHERE nome LIKE ?
+            ORDER BY nome
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, "%" + nome + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Membro m = new Membro();
+                m.setCodMembro(rs.getInt("cod_membro"));
+                m.setNome(rs.getString("nome"));
+                m.setEndereco(rs.getString("endereco"));
+                m.setTelefone(rs.getString("telefone"));
+                m.setEmail(rs.getString("email"));
+                m.setCpf(rs.getString("cpf"));
+
+                Timestamp ts = rs.getTimestamp("data_outorga");
+                if (ts != null) {
+                    m.setDataOutorga(ts.toLocalDateTime());
+                }
+
+                lista.add(m);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+
 }

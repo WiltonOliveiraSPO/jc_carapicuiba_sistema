@@ -6,7 +6,7 @@ public class Dedicacao {
 
     private int codDedicacao;
     private LocalDate dtDedicacao;
-    private int qtdeMembros;
+ 	private int qtdeMembros;
     private int qtdeFrequentadores;
     private int qtdePrimVez;
 

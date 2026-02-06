@@ -1,20 +1,23 @@
 package dao;
 
 import model.Gratidao;
+import javax.swing.JOptionPane;
 import dao.DBConnection;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GratidaoDAO {
 
     private Connection con;
+    //private final GratidaoDAO dao = new GratidaoDAO();
 
     public GratidaoDAO() {
         try {
-            con = DBConnection.getConnection();
+            this.con = DBConnection.getConnection();
         } catch (SQLException e) {
             throw new RuntimeException("Erro na conexão", e);
         }
@@ -118,4 +121,89 @@ public class GratidaoDAO {
 
         return lista;
     }
+    
+
+
+   
+ // ================= PESQUISA POR DATA =================
+    public List<Object[]> pesquisarPorPeriodo(
+            LocalDateTime inicio, LocalDateTime fim) {
+
+        List<Object[]> lista = new ArrayList<>();
+
+        String sql = """
+            SELECT g.cod_gratidao,
+                   m.nome,
+                   g.dt_gratidao,
+                   g.vl_gratidao,
+                   g.tipo_gratidao
+            FROM gratidao g
+            JOIN membro m ON m.cod_membro = g.cod_membro
+            WHERE g.dt_gratidao BETWEEN ? AND ?
+            ORDER BY g.dt_gratidao
+        """;
+
+        try (PreparedStatement pst = con.prepareStatement(sql)) {
+
+            pst.setTimestamp(1, Timestamp.valueOf(inicio));
+            pst.setTimestamp(2, Timestamp.valueOf(fim));
+
+            ResultSet rs = pst.executeQuery();
+
+            while (rs.next()) {
+                lista.add(new Object[]{
+                        rs.getInt(1),
+                        rs.getString(2),
+                        rs.getTimestamp(3).toLocalDateTime(),
+                        rs.getDouble(4),
+                        rs.getString(5)
+                });
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao pesquisar por período", e);
+        }
+
+        return lista;
+    }
+
+    // ================= PESQUISA POR TIPO =================
+    public List<Object[]> pesquisarPorTipo(String tipo) {
+
+        List<Object[]> lista = new ArrayList<>();
+
+        String sql = """
+            SELECT g.cod_gratidao,
+                   m.nome,
+                   g.dt_gratidao,
+                   g.vl_gratidao,
+                   g.tipo_gratidao
+            FROM gratidao g
+            JOIN membro m ON m.cod_membro = g.cod_membro
+            WHERE g.tipo_gratidao = ?
+            ORDER BY g.dt_gratidao
+        """;
+
+        try (PreparedStatement pst = con.prepareStatement(sql)) {
+
+            pst.setString(1, tipo);
+            ResultSet rs = pst.executeQuery();
+
+            while (rs.next()) {
+                lista.add(new Object[]{
+                        rs.getInt(1),
+                        rs.getString(2),
+                        rs.getTimestamp(3).toLocalDateTime(),
+                        rs.getDouble(4),
+                        rs.getString(5)
+                });
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao pesquisar por tipo", e);
+        }
+
+        return lista;
+    }
+
 }

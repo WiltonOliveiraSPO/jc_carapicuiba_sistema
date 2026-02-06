@@ -77,8 +77,7 @@ public class TelaInicial extends JFrame {
         botoes.put("Pesquisa de Pedidos Diários", FrmPesquisaPedidosDiarios::new);
         botoes.put("Pesquisa de Membros",FrmPesquisaMembro::new);
         botoes.put("Pesquisa de Primeira Vez",FrmPesquisaPrimeiraVez::new);
-        botoes.put("Pesquisa de Gratidão",
-                () -> JOptionPane.showMessageDialog(this, "Tela em desenvolvimento"));
+        botoes.put("Pesquisa de Gratidão", FrmPesquisaGratidao::new);
 
         botoes.forEach((texto, acao) -> {
             JButton botao = criarBotao(texto);

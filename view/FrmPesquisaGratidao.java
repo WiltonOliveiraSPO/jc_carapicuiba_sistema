@@ -1,18 +1,20 @@
 package view;
 
 import dao.GratidaoDAO;
+import com.toedter.calendar.JDateChooser;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.Image;
 import java.io.FileOutputStream;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.Font;
-import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.*;
 
 public class FrmPesquisaGratidao extends JFrame {
@@ -20,7 +22,7 @@ public class FrmPesquisaGratidao extends JFrame {
     private JTable tabela;
     private DefaultTableModel model;
 
-    private JTextField txtDataIni, txtDataFim;
+    private JDateChooser dcDataIni, dcDataFim;
     private JComboBox<String> cbTipo;
 
     private final GratidaoDAO dao = new GratidaoDAO();
@@ -60,18 +62,23 @@ public class FrmPesquisaGratidao extends JFrame {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         p.add(new JLabel("Data Inicial:"));
-        txtDataIni = new JTextField(10);
-        p.add(txtDataIni);
+        dcDataIni = new JDateChooser();
+        dcDataIni.setDateFormatString("dd/MM/yyyy");
+        dcDataIni.setPreferredSize(new Dimension(120, 25));
+        p.add(dcDataIni);
 
         p.add(new JLabel("Data Final:"));
-        txtDataFim = new JTextField(10);
-        p.add(txtDataFim);
+        dcDataFim = new JDateChooser();
+        dcDataFim.setDateFormatString("dd/MM/yyyy");
+        dcDataFim.setPreferredSize(new Dimension(120, 25));
+        p.add(dcDataFim);
 
         JButton btnPesquisar = new JButton("Pesquisar");
         btnPesquisar.addActionListener(e -> pesquisarPorData());
         p.add(btnPesquisar);
 
         p.add(botaoPDF());
+
         return p;
     }
 
@@ -87,6 +94,7 @@ public class FrmPesquisaGratidao extends JFrame {
         p.add(btnPesquisar);
 
         p.add(botaoPDF());
+
         return p;
     }
 
@@ -106,18 +114,34 @@ public class FrmPesquisaGratidao extends JFrame {
     }
 
     private void pesquisarPorData() {
-        try {
-            LocalDateTime inicio = LocalDateTime.parse(
-                    txtDataIni.getText() + " 00:00", dtf);
 
-            LocalDateTime fim = LocalDateTime.parse(
-                    txtDataFim.getText() + " 23:59", dtf);
+        if (dcDataIni.getDate() == null || dcDataFim.getDate() == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Selecione a data inicial e final.");
+            return;
+        }
+
+        try {
+
+            Date di = dcDataIni.getDate();
+            Date df = dcDataFim.getDate();
+
+            LocalDateTime inicio = di.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                    .atStartOfDay();
+
+            LocalDateTime fim = df.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                    .atTime(23,59);
 
             preencherTabela(dao.pesquisarPorPeriodo(inicio, fim));
 
         } catch (Exception e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                    "Data inválida. Use dd/MM/yyyy");
+                    "Erro ao pesquisar por data.");
         }
     }
 
@@ -141,7 +165,6 @@ public class FrmPesquisaGratidao extends JFrame {
         }
     }
 
-    // ================= GERAR PDF =================
     private void gerarPDF() {
 
         if (tabela.getRowCount() == 0) {
@@ -154,11 +177,9 @@ public class FrmPesquisaGratidao extends JFrame {
         String caminho = pasta + "\\gratidao.pdf";
 
         try {
-            // cria a pasta se não existir
+
             java.io.File dir = new java.io.File(pasta);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
+            if (!dir.exists()) dir.mkdirs();
 
             Document document = new Document();
             PdfWriter.getInstance(document, new FileOutputStream(caminho));
@@ -178,10 +199,10 @@ public class FrmPesquisaGratidao extends JFrame {
                         new Phrase(tabela.getColumnName(i))));
             }
 
-            for (int rows = 0; rows < tabela.getRowCount(); rows++) {
-                for (int cols = 0; cols < tabela.getColumnCount(); cols++) {
-                    Object value = tabela.getValueAt(rows, cols);
-                    pdfTable.addCell(value != null ? value.toString() : "");
+            for (int r = 0; r < tabela.getRowCount(); r++) {
+                for (int c = 0; c < tabela.getColumnCount(); c++) {
+                    Object v = tabela.getValueAt(r, c);
+                    pdfTable.addCell(v != null ? v.toString() : "");
                 }
             }
 
@@ -205,9 +226,8 @@ public class FrmPesquisaGratidao extends JFrame {
         ImageIcon icon = new ImageIcon(
                 new ImageIcon("C:\\jc_carapicuiba\\icons\\pdf_relatorio.jpg")
                         .getImage()
-                        .getScaledInstance(26, 26, java.awt.Image.SCALE_SMOOTH)
+                        .getScaledInstance(26, 26, Image.SCALE_SMOOTH)
         );
-
 
         b.setIcon(icon);
         b.setToolTipText("Gerar PDF");

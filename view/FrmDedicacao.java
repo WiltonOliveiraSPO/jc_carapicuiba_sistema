@@ -12,10 +12,14 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import com.toedter.calendar.JDateChooser;
+import java.util.Date;
+import java.time.ZoneId;
+
 public class FrmDedicacao extends JFrame {
 
     private JTextField txtCodigo;
-    private JTextField txtData;
+    private JDateChooser dcData;
     private JTextField txtMembros;
     private JTextField txtFrequentadores;
     private JTextField txtPrimeiraVez;
@@ -129,8 +133,13 @@ public class FrmDedicacao extends JFrame {
         painel.add(txtCodigo);
 
         painel.add(criarLabel("Data:"));
-        txtData = criarCampo(false);
-        painel.add(txtData);
+
+        dcData = new JDateChooser();
+        dcData.setDateFormatString("dd/MM/yyyy");
+        dcData.setFont(new Font("Arial", Font.PLAIN, 13));
+        dcData.setDate(new Date()); // data atual ao abrir
+
+        painel.add(dcData);
 
         painel.add(criarLabel("Qtde Membros:"));
         txtMembros = criarCampo(true);
@@ -171,7 +180,12 @@ public class FrmDedicacao extends JFrame {
 
         Dedicacao d = lista.get(posicao);
         txtCodigo.setText(String.valueOf(d.getCodDedicacao()));
-        txtData.setText(d.getDtDedicacao().format(formatter));
+        Date data = Date.from(
+                d.getDtDedicacao()
+                 .atStartOfDay(ZoneId.systemDefault())
+                 .toInstant()
+        );
+        dcData.setDate(data);
         txtMembros.setText(String.valueOf(d.getQtdeMembros()));
         txtFrequentadores.setText(String.valueOf(d.getQtdeFrequentadores()));
         txtPrimeiraVez.setText(String.valueOf(d.getQtdePrimVez()));
@@ -179,7 +193,7 @@ public class FrmDedicacao extends JFrame {
 
     private void limparCamposInicial() {
         txtCodigo.setText("");
-        txtData.setText(LocalDate.now().format(formatter));
+        dcData.setDate(new Date());
         txtMembros.setText("");
         txtFrequentadores.setText("");
         txtPrimeiraVez.setText("");
@@ -188,7 +202,7 @@ public class FrmDedicacao extends JFrame {
     // ================= CRUD =================
     private void novo() {
         txtCodigo.setText("");
-        txtData.setText(LocalDate.now().format(formatter));
+        dcData.setDate(new Date());
         txtMembros.setText("");
         txtFrequentadores.setText("");
         txtPrimeiraVez.setText("");
@@ -200,7 +214,17 @@ public class FrmDedicacao extends JFrame {
     private void salvar() {
         try {
             Dedicacao d = new Dedicacao();
-            d.setDtDedicacao(LocalDate.now());
+            if (dcData.getDate() == null) {
+                JOptionPane.showMessageDialog(this, "Selecione uma data!");
+                return;
+            }
+
+            LocalDate dataSelecionada = dcData.getDate()
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
+            d.setDtDedicacao(dataSelecionada);
             d.setQtdeMembros(Integer.parseInt(txtMembros.getText()));
             d.setQtdeFrequentadores(Integer.parseInt(txtFrequentadores.getText()));
             d.setQtdePrimVez(Integer.parseInt(txtPrimeiraVez.getText()));
@@ -221,7 +245,17 @@ public class FrmDedicacao extends JFrame {
         try {
             Dedicacao d = new Dedicacao();
             d.setCodDedicacao(Integer.parseInt(txtCodigo.getText()));
-            d.setDtDedicacao(LocalDate.parse(txtData.getText(), formatter));
+            if (dcData.getDate() == null) {
+                JOptionPane.showMessageDialog(this, "Selecione uma data!");
+                return;
+            }
+
+            LocalDate dataSelecionada = dcData.getDate()
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
+            d.setDtDedicacao(dataSelecionada);
             d.setQtdeMembros(Integer.parseInt(txtMembros.getText()));
             d.setQtdeFrequentadores(Integer.parseInt(txtFrequentadores.getText()));
             d.setQtdePrimVez(Integer.parseInt(txtPrimeiraVez.getText()));

@@ -12,9 +12,14 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import com.toedter.calendar.JDateChooser;
+import java.util.Date;
+import java.time.ZoneId;
+
 public class FrmPedidos extends JFrame {
 
-    private JTextField txtCodigo, txtData;
+    private JTextField txtCodigo;
+    private JDateChooser dcData;    
     private JTextField txtAgradecimento, txtGraca, txtElevacao, txtAnivFalec;
 
     private List<Pedido> lista;
@@ -114,7 +119,13 @@ public class FrmPedidos extends JFrame {
         txtCodigo = campo(false); p.add(txtCodigo);
 
         p.add(label("Data:"));
-        txtData = campo(false); p.add(txtData);
+
+        dcData = new JDateChooser();
+        dcData.setDateFormatString("dd/MM/yyyy");
+        dcData.setDate(new Date());
+        dcData.setFont(new Font("Arial", Font.PLAIN, 13));
+
+        p.add(dcData);
 
         p.add(label("Agradecimento:"));
         txtAgradecimento = campo(true); p.add(txtAgradecimento);
@@ -147,7 +158,7 @@ public class FrmPedidos extends JFrame {
     // ================= AÇÕES =================
     private void novo() {
         txtCodigo.setText("");
-        txtData.setText(LocalDate.now().format(formatter));
+        dcData.setDate(new Date());
         txtAgradecimento.setText("");
         txtGraca.setText("");
         txtElevacao.setText("");
@@ -159,7 +170,17 @@ public class FrmPedidos extends JFrame {
     private void salvar() {
         try {
             Pedido p = new Pedido();
-            p.setDtPedidos(LocalDate.now());
+            if (dcData.getDate() == null) {
+        JOptionPane.showMessageDialog(this,"Selecione uma data!");
+        return;
+    }
+
+            LocalDate dataSelecionada = dcData.getDate()
+            .toInstant()
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate();
+
+            p.setDtPedidos(dataSelecionada);            
             p.setQtdeAgradecimento(Integer.parseInt(txtAgradecimento.getText()));
             p.setQtdeGraca(Integer.parseInt(txtGraca.getText()));
             p.setQtdeElevacao(Integer.parseInt(txtElevacao.getText()));
@@ -179,7 +200,17 @@ public class FrmPedidos extends JFrame {
 
         Pedido p = new Pedido();
         p.setCodPedidos(Integer.parseInt(txtCodigo.getText()));
-        p.setDtPedidos(LocalDate.parse(txtData.getText(), formatter));
+        if (dcData.getDate() == null) {
+            JOptionPane.showMessageDialog(this,"Selecione uma data!");
+            return;
+        }
+
+        LocalDate dataSelecionada = dcData.getDate()
+        .toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate();
+
+        p.setDtPedidos(dataSelecionada);
         p.setQtdeAgradecimento(Integer.parseInt(txtAgradecimento.getText()));
         p.setQtdeGraca(Integer.parseInt(txtGraca.getText()));
         p.setQtdeElevacao(Integer.parseInt(txtElevacao.getText()));
@@ -209,7 +240,13 @@ public class FrmPedidos extends JFrame {
     private void mostrar() {
         Pedido p = lista.get(posicao);
         txtCodigo.setText(String.valueOf(p.getCodPedidos()));
-        txtData.setText(p.getDtPedidos().format(formatter));
+        Date data = Date.from(
+        p.getDtPedidos()
+         .atStartOfDay(ZoneId.systemDefault())
+         .toInstant()
+        );
+
+        dcData.setDate(data);
         txtAgradecimento.setText(String.valueOf(p.getQtdeAgradecimento()));
         txtGraca.setText(String.valueOf(p.getQtdeGraca()));
         txtElevacao.setText(String.valueOf(p.getQtdeElevacao()));
@@ -225,3 +262,4 @@ public class FrmPedidos extends JFrame {
         SwingUtilities.invokeLater(FrmPedidos::new);
     }
 }
+
